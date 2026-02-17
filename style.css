@@ -69,6 +69,7 @@
   border-radius: 6px;
   padding: 8px 10px 54px 10px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   scrollbar-color: rgba(255,255,255,0.7) transparent;
   scrollbar-width: thin;
   font-size: 0.9em; /* Reducido de 1.06em para más espacio */
