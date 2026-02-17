@@ -584,6 +584,7 @@
       <button id="filtersBtn" class="menu-btn" title="Mostrar/ocultar filtros">VER MENÚ</button>
       <div id="brand-raiz">La Raíz</div>
       <div id="brandBadge"></div>
+      <button id="shareBtn" class="menu-btn" title="Compartir mapa">⤴ COMPARTIR</button>
     </div>
     <div id="admin-panel" style="display:none">
       <div id="filtersHeader"></div>
@@ -664,9 +665,24 @@
        }
       if(hideTimer) clearTimeout(hideTimer); } function hideFlag(){ var flag=document.getElementById('flagContainer'); var circle=document.querySelector('.circle-bounce'); if(!flag || !circle) return; flag.style.display='none'; circle.style.display='flex'; if(hideTimer) clearTimeout(hideTimer); } document.addEventListener('click', function(e){ if(!isInSplash()) return; if(isOutside(e.target)){ clickCount++; if(clickCount>=7){ clickCount=0; showEgg(); } } else { clickCount=0; } }, true); var circleElement=document.querySelector('.circle-bounce'); if(circleElement){ circleElement.addEventListener('dblclick', function(e){ if(!isInSplash()) return; e.stopPropagation(); showFlag(); }); } var flagElement=document.getElementById('flagContainer'); if(flagElement){ flagElement.addEventListener('click', function(e){ e.stopPropagation(); hideFlag(); }); } })();
     document.getElementById('startBtn').addEventListener('click', startApp);
-    
+    (function(){
+      var btn=document.getElementById('shareBtn');
+      if(!btn) return;
+      if(!(navigator && navigator.share)){
+        btn.style.display='none';
+        return;
+      }
+      btn.addEventListener('click',function(){
+        try{
+          navigator.share({
+            title:'Mapa de Escuelas La Raíz',
+            text:'Mapa interactivo de escuelas de La Plata, Berisso y Ensenada',
+            url:window.location.href
+          }).catch(function(){});
+        }catch(e){}
+      });
+    })();
 
-    
     map = L.map('map').setView([-34.921, -57.954], 11);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ maxZoom:19, attribution:'© OpenStreetMap contributors' }).addTo(map);
     map.createPane('boundariesGlowPane'); map.getPane('boundariesGlowPane').style.zIndex = 340;
