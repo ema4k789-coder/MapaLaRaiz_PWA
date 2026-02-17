@@ -534,6 +534,7 @@
     <div class="splash-subtitle">La Plata, Berisso y Ensenada</div>
     <div class="btn-container">
       <button class="splash-btn" id="startBtn" onclick="try{ startApp(); }catch(e){ try{ var s=document.getElementById('splash'); var m=document.getElementById('mainApp'); if(s) s.style.display='none'; if(m) m.style.display='block'; setTimeout(function(){ try{ map.invalidateSize(); }catch(_){ } }, 200); }catch(_){ } }"><span>Realice su consulta</span></button>
+      <button class="splash-btn" id="splashShareBtn" type="button"><span>Compartir mapa</span></button>
     </div>
   </div>
     <div id="easterEgg" style="display:none;position:fixed;top:20%;left:50%;transform:translate(-50%,-50%);width:200px;height:200px;background:#fff;border-radius:50%;box-shadow:0 0 40px 8px #fff8, 0 8px 32px #0006;z-index:2000;align-items:center;justify-content:center;color:#222;pointer-events:none;overflow:hidden;">
@@ -644,13 +645,14 @@
       if(hideTimer) clearTimeout(hideTimer); } function hideFlag(){ var flag=document.getElementById('flagContainer'); var circle=document.querySelector('.circle-bounce'); if(!flag || !circle) return; flag.style.display='none'; circle.style.display='flex'; if(hideTimer) clearTimeout(hideTimer); } document.addEventListener('click', function(e){ if(!isInSplash()) return; if(isOutside(e.target)){ clickCount++; if(clickCount>=7){ clickCount=0; showEgg(); } } else { clickCount=0; } }, true); var circleElement=document.querySelector('.circle-bounce'); if(circleElement){ circleElement.addEventListener('dblclick', function(e){ if(!isInSplash()) return; e.stopPropagation(); showFlag(); }); } var flagElement=document.getElementById('flagContainer'); if(flagElement){ flagElement.addEventListener('click', function(e){ e.stopPropagation(); hideFlag(); }); } })();
     document.getElementById('startBtn').addEventListener('click', startApp);
     (function(){
-      var btn=document.getElementById('shareBtn');
-      if(!btn) return;
+      var btnTop=document.getElementById('shareBtn');
+      var btnSplash=document.getElementById('splashShareBtn');
       if(!(navigator && navigator.share)){
-        btn.style.display='none';
+        if(btnTop) btnTop.style.display='none';
+        if(btnSplash) btnSplash.style.display='none';
         return;
       }
-      btn.addEventListener('click',function(){
+      function doShare(){
         try{
           navigator.share({
             title:'Mapa de Escuelas La Raíz',
@@ -658,7 +660,13 @@
             url:window.location.href
           }).catch(function(){});
         }catch(e){}
-      });
+      }
+      if(btnTop){
+        btnTop.addEventListener('click', doShare);
+      }
+      if(btnSplash){
+        btnSplash.addEventListener('click', doShare);
+      }
     })();
 
     map = L.map('map').setView([-34.921, -57.954], 11);
