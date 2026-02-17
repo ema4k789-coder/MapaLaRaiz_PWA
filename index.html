@@ -195,7 +195,6 @@
       .splash-texts-container .splash-btn { width:100%; background:#fff; color:#222; font-size:1.0em; font-weight:bold; border:none; border-radius:25px; padding:16px 15px; cursor:pointer; letter-spacing:1px; transition: all 0.3s ease; animation: pulseButton 2.2s infinite; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; position: relative; box-shadow: 0 0 0 rgba(255,255,255,0.3) inset; }
       .splash-texts-container #startBtn { box-shadow: 0 0 24px rgba(255,255,255,0.5) inset, 0 8px 28px rgba(0,0,0,0.35); }
       .splash-texts-container #splashShareBtn { font-size:0.9em; padding:12px 12px; opacity:0.92; }
-    .share-icon { display:inline-block; margin-right:6px; font-size:1.1em; vertical-align:middle; }
     .splash-texts-container .splash-btn::before { content: ''; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px; background: linear-gradient(45deg, #ffffff, #f0f0f0, #ffffff); border-radius: 27px; z-index: -1; opacity: 0; transition: opacity 0.3s ease; }
     .splash-texts-container .splash-btn:hover::before { opacity: 1; }
     .splash-texts-container .splash-btn:hover { box-shadow: 0 0 20px rgba(255,255,255,0.4) inset, 0 6px 25px rgba(0,0,0,0.2); }
@@ -567,7 +566,6 @@
       <button id="filtersBtn" class="menu-btn" title="Mostrar/ocultar filtros">VER MENÚ</button>
       <div id="brand-raiz">La Raíz</div>
       <div id="brandBadge"></div>
-      <button id="shareBtn" class="menu-btn" title="Compartir aplicación"><span class="share-icon">⤴</span><span>COMPARTIR APLICACIÓN</span></button>
     </div>
     <div id="admin-panel" style="display:none">
       <div id="filtersHeader"></div>
@@ -649,11 +647,10 @@
       if(hideTimer) clearTimeout(hideTimer); } function hideFlag(){ var flag=document.getElementById('flagContainer'); var circle=document.querySelector('.circle-bounce'); if(!flag || !circle) return; flag.style.display='none'; circle.style.display='flex'; if(hideTimer) clearTimeout(hideTimer); } document.addEventListener('click', function(e){ if(!isInSplash()) return; if(isOutside(e.target)){ clickCount++; if(clickCount>=7){ clickCount=0; showEgg(); } } else { clickCount=0; } }, true); var circleElement=document.querySelector('.circle-bounce'); if(circleElement){ circleElement.addEventListener('dblclick', function(e){ if(!isInSplash()) return; e.stopPropagation(); showFlag(); }); } var flagElement=document.getElementById('flagContainer'); if(flagElement){ flagElement.addEventListener('click', function(e){ e.stopPropagation(); hideFlag(); }); } })();
     document.getElementById('startBtn').addEventListener('click', startApp);
     (function(){
-      var btnTop=document.getElementById('shareBtn');
       var btnSplash=document.getElementById('splashShareBtn');
+      if(!btnSplash) return;
       if(!(navigator && navigator.share)){
-        if(btnTop) btnTop.style.display='none';
-        if(btnSplash) btnSplash.style.display='none';
+        btnSplash.style.display='none';
         return;
       }
       function doShare(){
@@ -665,12 +662,7 @@
           }).catch(function(){});
         }catch(e){}
       }
-      if(btnTop){
-        btnTop.addEventListener('click', doShare);
-      }
-      if(btnSplash){
-        btnSplash.addEventListener('click', doShare);
-      }
+      btnSplash.addEventListener('click', doShare);
     })();
 
     map = L.map('map').setView([-34.921, -57.954], 11);

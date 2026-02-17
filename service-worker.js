@@ -1,4 +1,4 @@
-var CACHE_NAME="mapalaraiz-colectivos-pwa-v1";
+var CACHE_NAME="mapalaraiz-colectivos-pwa-v2";
 var CACHE_ASSETS=[
   "./",
   "./index.html",
@@ -49,4 +49,3 @@ self.addEventListener("fetch",function(event){
     })
   );
 });
-
