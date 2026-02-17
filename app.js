@@ -1,3 +1,22 @@
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    try {
+      navigator.serviceWorker.register('service-worker.js');
+    } catch (e) {}
+  });
+}
+
+(function () {
+  try {
+    if (!document.querySelector('link[rel="manifest"]')) {
+      var link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = 'manifest.webmanifest';
+      document.head.appendChild(link);
+    }
+  } catch (e) {}
+})();
+
 const map = L.map('map').setView([-34.921, -57.954], 11);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
