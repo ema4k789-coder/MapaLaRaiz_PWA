@@ -1,4 +1,4 @@
-var CACHE_NAME="mapalaraiz-colectivos-pwa-v2";
+var CACHE_NAME="mapalaraiz-colectivos-pwa-v4";
 var CACHE_ASSETS=[
   "./",
   "./index.html",

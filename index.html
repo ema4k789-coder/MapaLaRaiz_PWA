@@ -8,6 +8,49 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="leaflet.css" />
   <link rel="stylesheet" href="style.css" />
+  <style>
+    #qrShareOverlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.6);
+      z-index: 3000;
+    }
+    #qrShareInner {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px 18px 12px 18px;
+      max-width: 90vw;
+      text-align: center;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.35);
+    }
+    #qrShareInner h3 {
+      margin: 0 0 8px 0;
+      font-size: 18px;
+    }
+    #qrShareInner p {
+      margin: 0 0 10px 0;
+      font-size: 13px;
+    }
+    #qrShareCanvas {
+      width: 180px;
+      height: 180px;
+      margin-bottom: 10px;
+    }
+    #qrShareCloseBtn {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      border: none;
+      background: #222;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+    }
+  </style>
   <script>
     if("serviceWorker" in navigator){
       window.addEventListener("load",function(){
@@ -18,6 +61,7 @@
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <script>
     (function(){
       var l = document.querySelector('link[href="style.css"]');
@@ -41,68 +85,22 @@
           if(!targetFrame || typeof html2canvas==='undefined') return;
           var fc=targetFrame.querySelector('.frame-content');
           if(!fc) return;
-          var generalFields=targetFrame.querySelector('.general-fields');
-          var comoFields=targetFrame.querySelector('.como-fields');
-          var comoLine=targetFrame.querySelector('.field-line-comollego');
           var isMobile=((window.innerWidth||1024)<=600)||(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
           var scaleVal=isMobile?1.25:2;
-          var originalScroll=fc.scrollTop;
-          var visibleCanvas=null;
-          var hiddenCanvas=null;
-          if(generalFields && comoFields && comoLine){
-            var prevGenDisplay=generalFields.style.display;
-            var prevComoDisplay=comoFields.style.display;
-            fc.scrollTop=0;
-            comoFields.style.display='none';
-            generalFields.style.display='';
-            visibleCanvas=await html2canvas(targetFrame,{ backgroundColor:null, useCORS:true, scale:scaleVal });
-            generalFields.style.display='none';
-            comoFields.style.display='';
-            fc.scrollTop=0;
-            hiddenCanvas=await html2canvas(targetFrame,{ backgroundColor:null, useCORS:true, scale:scaleVal });
-            generalFields.style.display=prevGenDisplay;
-            comoFields.style.display=prevComoDisplay;
-            fc.scrollTop=originalScroll;
-          } else {
-            fc.scrollTop=0;
-            visibleCanvas=await html2canvas(targetFrame,{ backgroundColor:null, useCORS:true, scale:scaleVal });
-            if(fc.scrollHeight>fc.clientHeight){
-              var saltoScroll=fc.clientHeight;
-              var ultimoCompleto2=null;
-              Array.prototype.forEach.call(fc.children,function(child){
-                var childBottom=child.offsetTop+child.offsetHeight;
-                if(childBottom <= fc.clientHeight){
-                  ultimoCompleto2=child;
-                }
-              });
-              if(ultimoCompleto2){
-                saltoScroll=ultimoCompleto2.offsetTop+ultimoCompleto2.offsetHeight;
-              }
-              fc.scrollTop=saltoScroll;
-              hiddenCanvas=await html2canvas(targetFrame,{ backgroundColor:null, useCORS:true, scale:scaleVal });
-            } else {
-              hiddenCanvas=visibleCanvas;
-            }
-            fc.scrollTop=originalScroll;
-          }
+          var visibleCanvas=await html2canvas(targetFrame,{ backgroundColor:null, useCORS:true, scale:scaleVal });
           var piz=new Image();
           piz.onload=function(){
             var width=piz.width;
             var height=piz.height;
-            var totalWidth=hiddenCanvas && hiddenCanvas!==visibleCanvas ? width*2 : width;
             var finalCanvas=document.createElement('canvas');
-            finalCanvas.width=totalWidth;
+            finalCanvas.width=width;
             finalCanvas.height=height;
             var ctx=finalCanvas.getContext('2d');
             ctx.drawImage(piz,0,0,width,height);
             ctx.drawImage(visibleCanvas,0,0,width,height);
-            if(hiddenCanvas && hiddenCanvas!==visibleCanvas){
-              ctx.drawImage(piz,width,0,width,height);
-              ctx.drawImage(hiddenCanvas,width,0,width,height);
-            }
             var fname=String(p.nombre||'escuela').replace(/[^a-z0-9 -]/gi,'_');
             if(!fname) fname='escuela';
-            fname += (hiddenCanvas && hiddenCanvas!==visibleCanvas)?'_doble.jpg':'.jpg';
+            fname+='.jpg';
             finalCanvas.toBlob(function(blob){
               if(!blob) return;
               var url=URL.createObjectURL(blob);
@@ -540,6 +538,15 @@
       <button class="splash-btn" id="splashShareBtn" type="button"><span>⤴ Compartir aplicación</span></button>
     </div>
   </div>
+  <div id="qrShareOverlay">
+    <div id="qrShareInner">
+      <h3>Compartir aplicación</h3>
+      <p>Escaneá este código QR con otro móvil para abrir el mapa.</p>
+      <canvas id="qrShareCanvas"></canvas>
+      <br>
+      <button id="qrShareCloseBtn" type="button">Cerrar</button>
+    </div>
+  </div>
     <div id="easterEgg" style="display:none;position:fixed;top:20%;left:50%;transform:translate(-50%,-50%);width:200px;height:200px;background:#fff;border-radius:50%;box-shadow:0 0 40px 8px #fff8, 0 8px 32px #0006;z-index:2000;align-items:center;justify-content:center;color:#222;pointer-events:none;overflow:hidden;">
       <div style="display:grid;place-items:center;box-sizing:border-box;width:92%;height:92%;padding:0 8px;text-align:center;font-weight:bold;font-size:1.2em;letter-spacing:0.6px;gap:6px;line-height:1.2;color:#d0002a;text-shadow:0 2px 10px rgba(0,0,0,0.25),0 1px 4px rgba(255,255,255,0.6);">
         <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
@@ -586,6 +593,7 @@
           <span id="counter" title="Cantidad de resultados">0</span>
         </div>
         <button id="toggleBusRoutesBtn" title="Mostrar/ocultar recorridos de colectivos">🚌</button>
+        <button id="togglePoiBtn" title="Mostrar/ocultar lugares de interés docente">🏛</button>
         <select id="busRouteSelect" style="display:none"></select>
         <button id="geojsonEditModeBtn" title="Modo edición GeoJSON">⤡</button>
       </div>
@@ -612,6 +620,8 @@
     var map = null;
     var allSchools = [];
     var markers = [];
+    var poiFeatures = [];
+    var poiMarkers = [];
     var municipioGeomByName = {};
     var boundaryLayers = [];
     var localityBoundariesLoaded = false;
@@ -622,10 +632,11 @@
     var busRoutesAllFeatures = [];
     var busRouteKeys = [];
     var busRouteKeySamples = {};
+    var poiVisible = false;
     function isMobilePortrait(){ var w=window.innerWidth||0,h=window.innerHeight||0; return w<=600 && h>=w; }
     function onPopupOpenCommon(){ try{ var w=window.innerWidth||1024; if(w<=600){ var admin=document.getElementById('admin-panel'); if(admin && window.adminPanelOpen){ window.adminPanelOpen=false; admin.style.display='none'; } } }catch(e){} }
     function hideSchoolOverlay(){ var ov=document.getElementById('schoolOverlay'); if(ov){ ov.classList.remove('active'); } if(typeof clearBusHighlight==='function'){ try{ clearBusHighlight(); }catch(e){} } }
-    function wirePopupInteractions(root,p,isOverlay){ if(!root) return; var frame=root.querySelector('.popup-frame'); var imgEl=root.querySelector('.frame-img'); if(frame && imgEl){ imgEl.onerror=function(){ try{ imgEl.remove(); }catch(e){} }; if(window.getFrameURL){ window.getFrameURL().then(function(url){ if(url) imgEl.src=url; }); } } var dlBtn=root.querySelector('.popup-dl-btn'); if(dlBtn){ dlBtn.onclick = async function(ev){ ev.stopPropagation(); var targetFrame=root.querySelector('.popup-frame'); if(!targetFrame || typeof html2canvas==='undefined') return; var fc=targetFrame.querySelector('.frame-content'); if(!fc) return; var isMobile=((window.innerWidth||1024)<=600)||(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)); var scaleVal=isMobile?1.25:2; var originalScroll=fc.scrollTop; fc.scrollTop=0; var visibleCanvas=await html2canvas(targetFrame,{ backgroundColor:null, useCORS:true, scale:scaleVal }); var hiddenCanvas=null; if(fc.scrollHeight>fc.clientHeight){ var saltoScroll=fc.clientHeight; var ultimoCompleto=null; Array.prototype.forEach.call(fc.children,function(child){ var childBottom=child.offsetTop+child.offsetHeight; if(childBottom <= fc.clientHeight){ ultimoCompleto=child; } }); if(ultimoCompleto){ saltoScroll=ultimoCompleto.offsetTop+ultimoCompleto.offsetHeight; } fc.scrollTop=saltoScroll; hiddenCanvas=await html2canvas(targetFrame,{ backgroundColor:null, useCORS:true, scale:scaleVal }); } else { hiddenCanvas=visibleCanvas; } fc.scrollTop = originalScroll; var piz = new Image(); piz.onload = function(){ var width=piz.width, height=piz.height; var totalWidth = hiddenCanvas && hiddenCanvas!==visibleCanvas ? width*2 : width; var finalCanvas=document.createElement('canvas'); finalCanvas.width=totalWidth; finalCanvas.height=height; var ctx=finalCanvas.getContext('2d'); ctx.drawImage(piz,0,0,width,height); ctx.drawImage(visibleCanvas,0,0,width,height); if(hiddenCanvas && hiddenCanvas!==visibleCanvas){ ctx.drawImage(piz,width,0,width,height); ctx.drawImage(hiddenCanvas,width,0,width,height); } var fname=String(p.nombre||'escuela').replace(/[^a-z0-9 -]/gi,'_'); if(!fname) fname='escuela'; fname += (hiddenCanvas && hiddenCanvas!==visibleCanvas)?'_doble.jpg':'.jpg'; var ua=(navigator.userAgent||''); var isIOS=/iPhone|iPad|iPod/i.test(ua); var isAndroid=/Android/i.test(ua); var isMobileDevice=isIOS||isAndroid; finalCanvas.toBlob(function(blob){ if(!blob) return; var url=URL.createObjectURL(blob); if(isMobileDevice){ try{ window.open(url,'_blank'); }catch(e){} setTimeout(function(){ try{ URL.revokeObjectURL(url); }catch(e){} }, 5000); alert('La imagen se abrió en una nueva pestaña: '+fname+' (usa Guardar imagen del navegador.)'); } else { var a=document.createElement('a'); a.href=url; a.download=fname; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); alert('Imagen descargada: '+fname); } }, 'image/jpeg', 0.92); }; piz.onerror=function(){ var ancho=visibleCanvas.width, alto=visibleCanvas.height; var finalCanvas=document.createElement('canvas'); finalCanvas.width=ancho; finalCanvas.height=alto; var ctx=finalCanvas.getContext('2d'); ctx.drawImage(visibleCanvas,0,0,ancho,alto); var fname=String(p.nombre||'escuela').replace(/[^a-z0-9 -]/gi,'_')+'.jpg'; var ua=(navigator.userAgent||''); var isIOS=/iPhone|iPad|iPod/i.test(ua); var isAndroid=/Android/i.test(ua); var isMobileDevice=isIOS||isAndroid; finalCanvas.toBlob(function(blob){ if(!blob) return; var url=URL.createObjectURL(blob); if(isMobileDevice){ try{ window.open(url,'_blank'); }catch(e){} setTimeout(function(){ try{ URL.revokeObjectURL(url); }catch(e){} }, 5000); alert('La imagen se abrió en una nueva pestaña: '+fname+' (usa Guardar imagen del navegador.)'); } else { var a=document.createElement('a'); a.href=url; a.download=fname; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); alert('Imagen descargada: '+fname); } }, 'image/jpeg', 0.92); }; piz.src = (targetFrame.querySelector('.frame-img') && targetFrame.querySelector('.frame-img').src) || 'pizarron.png'; }; } var volverBtn=root.querySelector('.popup-volver-btn'); if(volverBtn){ volverBtn.onclick=function(ev){ ev.stopPropagation(); if(isOverlay){ hideSchoolOverlay(); } else { map.closePopup(); } }; } }
+    function wirePopupInteractions(root,p,isOverlay){ if(!root) return; var frame=root.querySelector('.popup-frame'); var imgEl=root.querySelector('.frame-img'); if(frame && imgEl){ imgEl.onerror=function(){ try{ imgEl.remove(); }catch(e){} }; if(window.getFrameURL){ window.getFrameURL().then(function(url){ if(url) imgEl.src=url; }); } } var dlBtn=root.querySelector('.popup-dl-btn'); if(dlBtn){ dlBtn.onclick = async function(ev){ ev.stopPropagation(); var targetFrame=root.querySelector('.popup-frame'); if(!targetFrame || typeof html2canvas==='undefined') return; var fc=targetFrame.querySelector('.frame-content'); if(!fc) return; var isMobile=((window.innerWidth||1024)<=600)||(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)); var scaleVal=isMobile?1.25:2; var visibleCanvas=await html2canvas(targetFrame,{ backgroundColor:null, useCORS:true, scale:scaleVal }); var hiddenCanvas=visibleCanvas; var piz = new Image(); piz.onload = function(){ var width=piz.width, height=piz.height; var totalWidth=hiddenCanvas && hiddenCanvas!==visibleCanvas ? width*2 : width; var finalCanvas=document.createElement('canvas'); finalCanvas.width=totalWidth; finalCanvas.height=height; var ctx=finalCanvas.getContext('2d'); ctx.drawImage(piz,0,0,width,height); ctx.drawImage(visibleCanvas,0,0,width,height); if(hiddenCanvas && hiddenCanvas!==visibleCanvas){ ctx.drawImage(piz,width,0,width,height); ctx.drawImage(hiddenCanvas,width,0,width,height); } var fname=String(p.nombre||'escuela').replace(/[^a-z0-9 -]/gi,'_'); if(!fname) fname='escuela'; fname += (hiddenCanvas && hiddenCanvas!==visibleCanvas)?'_doble.jpg':'.jpg'; var ua=(navigator.userAgent||''); var isIOS=/iPhone|iPad|iPod/i.test(ua); var isAndroid=/Android/i.test(ua); var isMobileDevice=isIOS||isAndroid; finalCanvas.toBlob(function(blob){ if(!blob) return; var url=URL.createObjectURL(blob); if(isMobileDevice){ try{ window.open(url,'_blank'); }catch(e){} setTimeout(function(){ try{ URL.revokeObjectURL(url); }catch(e){} }, 5000); alert('La imagen se abrió en una nueva pestaña: '+fname+' (usa Guardar imagen del navegador.)'); } else { var a=document.createElement('a'); a.href=url; a.download=fname; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); alert('Imagen descargada: '+fname); } }, 'image/jpeg', 0.92); }; piz.onerror=function(){ var ancho=visibleCanvas.width, alto=visibleCanvas.height; var finalCanvas=document.createElement('canvas'); finalCanvas.width=ancho; finalCanvas.height=alto; var ctx=finalCanvas.getContext('2d'); ctx.drawImage(visibleCanvas,0,0,ancho,alto); var fname=String(p.nombre||'escuela').replace(/[^a-z0-9 -]/gi,'_')+'.jpg'; var ua=(navigator.userAgent||''); var isIOS=/iPhone|iPad|iPod/i.test(ua); var isAndroid=/Android/i.test(ua); var isMobileDevice=isIOS||isAndroid; finalCanvas.toBlob(function(blob){ if(!blob) return; var url=URL.createObjectURL(blob); if(isMobileDevice){ try{ window.open(url,'_blank'); }catch(e){} setTimeout(function(){ try{ URL.revokeObjectURL(url); }catch(e){} }, 5000); alert('La imagen se abrió en una nueva pestaña: '+fname+' (usa Guardar imagen del navegador.)'); } else { var a=document.createElement('a'); a.href=url; a.download=fname; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); alert('Imagen descargada: '+fname); } }, 'image/jpeg', 0.92); }; piz.src = (targetFrame.querySelector('.frame-img') && targetFrame.querySelector('.frame-img').src) || 'pizarron.png'; }; } var volverBtn=root.querySelector('.popup-volver-btn'); if(volverBtn){ volverBtn.onclick=function(ev){ ev.stopPropagation(); if(isOverlay){ hideSchoolOverlay(); } else { map.closePopup(); } }; } }
     function showSchoolOverlay(html,p){ var ov=document.getElementById('schoolOverlay'); var inner=document.getElementById('schoolOverlayInner'); if(!ov||!inner) return; inner.innerHTML=html; ov.style.paddingTop='0'; ov.classList.add('active'); if(window.wirePopupInteractions){ window.wirePopupInteractions(inner,p,true); } }
     function startApp(){ var s=document.getElementById('splash'); var t=document.querySelector('.splash-texts-container'); var m=document.getElementById('mainApp'); var f=document.getElementById('flagContainer'); var e=document.getElementById('easterEgg'); if(s) s.style.display='none'; if(t) t.style.display='none'; if(f) f.style.display='none'; if(e) e.style.display='none'; if(m) m.style.display='block'; window.inSplashScreen=false; setTimeout(function(){ try{ map.invalidateSize(); }catch(e){} }, 350); }
     (function(){ var clickCount=0; var hideTimer=null; var circle=document.querySelector('.circle-bounce'); var btn=document.getElementById('startBtn'); function isOutside(t){ return !(circle&&circle.contains(t)) && !(btn&&btn.contains(t)); } function isInSplash(){ return window.inSplashScreen!==false; } function showEgg(){ var egg=document.getElementById('easterEgg'); if(!egg) return; egg.style.display='flex'; if(hideTimer) clearTimeout(hideTimer); hideTimer=setTimeout(function(){ egg.style.display='none'; }, 4000); } function showFlag(){ var flag=document.getElementById('flagContainer'); var circle=document.querySelector('.circle-bounce'); if(!flag || !circle) return; circle.style.display='none'; flag.style.display='block'; 
@@ -649,11 +660,40 @@
     (function(){
       var btnSplash=document.getElementById('splashShareBtn');
       if(!btnSplash) return;
-      if(!(navigator && navigator.share)){
-        btnSplash.style.display='none';
-        return;
+      var qrOverlay=document.getElementById('qrShareOverlay');
+      var qrCanvas=document.getElementById('qrShareCanvas');
+      var qrClose=document.getElementById('qrShareCloseBtn');
+
+      function showQr(){
+        if(!qrOverlay || !qrCanvas) return;
+        qrOverlay.style.display='flex';
+        var url = window.location && window.location.href ? window.location.href : 'https://ema4k789-coder.github.io/MapaLaRaiz_PWA/';
+        var ctx = qrCanvas.getContext && qrCanvas.getContext('2d');
+        if(ctx){
+          ctx.clearRect(0,0,qrCanvas.width,qrCanvas.height);
+        }
+        if(window.QRCode && window.QRCode.toCanvas){
+          try{
+            window.QRCode.toCanvas(qrCanvas, url, { width: 180, margin: 1 }, function(){});
+          }catch(e){}
+        }
       }
+      if(qrClose && qrOverlay){
+        qrClose.addEventListener('click', function(){
+          qrOverlay.style.display='none';
+        });
+        qrOverlay.addEventListener('click', function(ev){
+          if(ev.target === qrOverlay){
+            qrOverlay.style.display='none';
+          }
+        });
+      }
+
       function doShare(){
+        showQr();
+        if(!(navigator && navigator.share)){
+          return;
+        }
         try{
           navigator.share({
             title:'Mapa de Escuelas La Raíz',
@@ -1056,6 +1096,49 @@
     function populateLocalities(){ var distrito=(distritoSelect.value||'').trim(); if(!distrito || distrito!=='La Plata'){ if(localidadSelect){ localidadSelect.value=''; localidadSelect.innerHTML=''; localidadSelect.style.display='none'; } return; } var base=getBaseFeatures(); var locSet=new Set(); var hasLaPlata=false; base.forEach(function(f){ var p=f.properties||{}; if((p.distrito||'').trim()===distrito){ var canon=(p.localidad_norm||normalizeLocalidadName(p.localidad||'')); if(canon){ if(canon==='La Plata') hasLaPlata=true; locSet.add(canon); } } }); var list=Array.from(locSet).sort(function(a,b){ return a.localeCompare(b,'es'); }); localidadSelect.innerHTML=''; var opt=document.createElement('option'); opt.value=''; opt.textContent='Todas las localidades'; localidadSelect.appendChild(opt); if(distrito==='La Plata'&&hasLaPlata){ var cascoOpt=document.createElement('option'); cascoOpt.value='Casco Urbano'; cascoOpt.textContent='Casco Urbano'; localidadSelect.appendChild(cascoOpt); }
       list.forEach(function(l){ var ln=l.trim().toLowerCase(); if(distrito==='La Plata' && ln==='la plata') return; var o=document.createElement('option'); if(ln==='san carlos'){ o.value='SAN CARLOS'; o.textContent='SAN CARLOS'; } else { o.value=l; o.textContent=l; } localidadSelect.appendChild(o); }); localidadSelect.style.display=''; }
     function getBaseFeatures(){ return allSchools.map(function(f){ var p=f.properties||{}; p.localidad_norm=normalizeLocalidadName(p.localidad||''); f.properties=p; return f; }); }
+    function clearPoiMarkers(){ try{ poiMarkers.forEach(function(m){ try{ map.removeLayer(m); }catch(e){} }); poiMarkers=[]; }catch(e){} }
+    function renderPoiMarkers(){
+      if(!poiVisible || !Array.isArray(poiFeatures)) return;
+      clearPoiMarkers();
+      var svg="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g1' x1='0' y1='0' x2='0' y2='1'><stop offset='0%' stop-color='#ffeb3b'/><stop offset='50%' stop-color='#ff9800'/><stop offset='100%' stop-color='#f44336'/></linearGradient></defs><circle cx='32' cy='32' r='30' fill='url(#g1)'/><rect x='20' y='20' width='24' height='30' fill='#ffffff' stroke='#1a237e' stroke-width='2'/><polygon points='32,10 16,20 48,20' fill='#1a237e'/><rect x='28' y='34' width='8' height='16' fill='#ffeb3b' stroke='#1a237e' stroke-width='2'/></svg>";
+      var icon=L.icon({
+        iconUrl:'data:image/svg+xml;utf8,'+encodeURIComponent(svg),
+        iconSize:[64,64],
+        iconAnchor:[32,64],
+        popupAnchor:[0,-44],
+        className:'poi-building-img'
+      });
+      poiFeatures.forEach(function(f){
+        try{
+          var coords=f.geometry&&f.geometry.coordinates;
+          if(!coords||coords.length<2) return;
+          var lat=Number(coords[1]), lng=Number(coords[0]);
+          if(isNaN(lat)||isNaN(lng)) return;
+          var p=f.properties||{};
+          var nombreBase=p.Lugar||p.nombre||p.nombre_lugar||p.titulo||p.descripcion||'';
+          var nombreFinal=nombreBase||'Lugar de interés docente';
+          var m=L.marker([lat,lng],{ icon:icon }).addTo(map);
+          var html="<div class='popup-frame'><img class='frame-img' src='pizarron.png' alt=''><button class='popup-dl-btn' title='Descargar imagen'>⬇</button><div class='frame-content'>";
+          html+="<div class='name-tag'>"+nombreFinal+"</div>";
+          Object.keys(p).forEach(function(k){
+            var kl=(k||'').toString().toLowerCase();
+            if(kl.indexOf('lat')!==-1 || kl.indexOf('long')!==-1 || kl.indexOf('coord')!==-1) return;
+            if(k && k[0]==='_') return;
+            if(kl==='tipo_lugar' || kl==='origen_lugar' || kl==='localidad_norm') return;
+            if(k==='Lugar') return;
+            html+="<div class='field-line'><b>"+k+":</b> "+p[k]+"</div>";
+          });
+          html+="</div><button type='button' class='popup-volver-btn'>VOLVER</button></div>";
+          if(isMobilePortrait()){
+            m.on('click', function(){ onPopupOpenCommon(); showSchoolOverlay(html,p); });
+          } else {
+            m.bindPopup(html,{ closeButton:false, autoClose:true, closeOnClick:true, autoPan:false });
+            m.on('popupopen', function(){ onPopupOpenCommon(); var content=document.querySelector('.leaflet-popup-content'); if(!content) return; if(window.wirePopupInteractions){ window.wirePopupInteractions(content,p,false); } });
+          }
+          poiMarkers.push(m);
+        }catch(e){}
+      });
+    }
     function filterSchools(){ var text=(searchInput.value||'').trim().toLowerCase(); var distrito=distritoSelect.value||''; var localidad=(localidadSelect&&localidadSelect.value)||''; var base=getBaseFeatures();
       function normStr(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLowerCase(); }
       var levelAllChecked = !!(document.getElementById('levelAll') && document.getElementById('levelAll').checked);
@@ -1068,6 +1151,7 @@
       if(text){ filtered = filtered.filter(function(f){ var p=f.properties||{}; return (p.nombre||'').toLowerCase().includes(text) || (p.numero||'').toString().toLowerCase().includes(text) || (p.nivel||'').toLowerCase().includes(text) || (p.localidad||'').toLowerCase().includes(text) || (p.localidad_norm||'').toLowerCase().includes(text); }); }
       clearMarkers(); renderMarkers(filtered); var c=document.getElementById('counter'); if(c) c.textContent=filtered.length; updateLevelsBadgeCount(); }
     if(toggleBusRoutesBtn){ toggleBusRoutesBtn.addEventListener('click', function(ev){ try{ ev.preventDefault(); ev.stopPropagation(); }catch(e){} busRoutesVisible=!busRoutesVisible; if(busRoutesVisible){ toggleBusRoutesBtn.classList.add('active'); if(busRoutesDataLoaded){ updateBusRoutesVisibility(); if(busRouteSelect){ busRouteSelect.style.display=''; } } else { loadBusRoutesIfNeeded().then(function(){ updateBusRoutesVisibility(); if(busRouteSelect){ busRouteSelect.style.display=''; } }).catch(function(){ busRoutesVisible=false; toggleBusRoutesBtn.classList.remove('active'); }); } } else { toggleBusRoutesBtn.classList.remove('active'); updateBusRoutesVisibility(); if(busRouteSelect){ busRouteSelect.value=''; busRouteSelect.style.display='none'; } } }); }
+    var togglePoiBtn=document.getElementById('togglePoiBtn'); if(togglePoiBtn){ togglePoiBtn.addEventListener('click', function(ev){ try{ ev.preventDefault(); ev.stopPropagation(); }catch(e){} poiVisible=!poiVisible; if(poiVisible){ togglePoiBtn.classList.add('active'); renderPoiMarkers(); } else { togglePoiBtn.classList.remove('active'); clearPoiMarkers(); } }); }
     if(busRouteSelect){ busRouteSelect.addEventListener('change', function(){ if(busRoutesVisible&&busRoutesDataLoaded){ rebuildBusRoutesLayer(); } }); }
     if(clearSearchBtn){ clearSearchBtn.addEventListener('click', function(ev){ try{ ev.preventDefault(); ev.stopPropagation(); }catch(e){} if(!searchInput) return; searchInput.value=''; setClearSearchVisible(); filterSchools(); try{ searchInput.focus(); }catch(e){} }); }
     distritoSelect.addEventListener('change', function(){ populateLocalities(); filterSchools(); applyPanelPosition(); updateDisplayForSelectedDistrict(); if((distritoSelect.value||'').trim()==='La Plata'){ addLocalityBoundariesLaPlata(); } if(busRoutesVisible&&busRoutesDataLoaded){ rebuildBusRoutesLayer(); } }); if(localidadSelect){ localidadSelect.addEventListener('change', function(){ filterSchools(); updateDisplayForSelectedDistrict(); if(busRoutesVisible&&busRoutesDataLoaded){ rebuildBusRoutesLayer(); } }); } searchInput.addEventListener('input', function(){ setClearSearchVisible(); filterSchools(); }); setClearSearchVisible();
@@ -1082,7 +1166,7 @@
     function addLocalityBoundariesLaPlata(){ if(Array.isArray(cachedLocalitiesLP)){ cachedLocalitiesLP.forEach(function(f){ var g=f&&f.geometry; if(!g) return; if(isPolygonGeojson(g)){ var glow=L.geoJSON(g,{ pane:'localitiesGlowPane', color:'#00aaff', weight:10, opacity:0.08, fill:false }); var sharp=L.geoJSON(g,{ pane:'localitiesPane', color:'#00aaff', weight:2, opacity:0.9, fill:false, dashArray:'6,4' }); localityLayers.push(glow); localityLayers.push(sharp); if(!boundariesHidden){ glow.addTo(map); sharp.addTo(map); try{ glow.bringToFront(); sharp.bringToFront(); }catch(e){} } } else if(g.type==='LineString' && Array.isArray(g.coordinates)){ var latlngs=g.coordinates.map(function(c){ return [c[1],c[0]]; }); var line=L.polyline(latlngs,{ pane:'localitiesPane', color:'#00aaff', weight:2, opacity:0.9, dashArray:'6,4' }); localityLayers.push(line); if(!boundariesHidden){ line.addTo(map); try{ line.bringToFront(); }catch(e){} } } }); return Promise.resolve(true); }
       return fetch('localidades_la_plata.geojson', { cache:'force-cache' }).then(function(r){ if(!r||!r.ok) return false; return r.json(); }).then(function(gj){ var feats=Array.isArray(gj.features)?gj.features:[]; feats.forEach(function(f){ var g=f&&f.geometry; if(!g) return; if(isPolygonGeojson(g)){ var glow=L.geoJSON(g,{ pane:'localitiesGlowPane', color:'#00aaff', weight:10, opacity:0.08, fill:false }); var sharp=L.geoJSON(g,{ pane:'localitiesPane', color:'#00aaff', weight:2, opacity:0.9, fill:false, dashArray:'6,4' }); localityLayers.push(glow); localityLayers.push(sharp); if(!boundariesHidden){ glow.addTo(map); sharp.addTo(map); try{ glow.bringToFront(); sharp.bringToFront(); }catch(e){} } } else if(g.type==='LineString' && Array.isArray(g.coordinates)){ var latlngs=g.coordinates.map(function(c){ return [c[1],c[0]]; }); var line=L.polyline(latlngs,{ pane:'localitiesPane', color:'#00aaff', weight:2, opacity:0.9, dashArray:'6,4' }); localityLayers.push(line); if(!boundariesHidden){ line.addTo(map); try{ line.bringToFront(); }catch(e){} } } }); cachedLocalitiesLP=feats; return true; }).catch(function(){ return false; }); }
     function updateDisplayForSelectedDistrict(){ try{ clearBoundaryLayers(); clearLocalityLayers(); if(boundariesHidden){ railwayLayers.forEach(function(l){ try{ map.removeLayer(l); }catch(e){} }); return; } var dist=(distritoSelect&&distritoSelect.value)||''; var distKey=(dist||'').trim().toLowerCase(); if(!distKey){ Object.keys(municipioGeomByName).forEach(function(k){ addBoundaryGeoJSON(municipioGeomByName[k]); }); railwayLayers.forEach(function(l){ try{ map.removeLayer(l); }catch(e){} }); } else if(distKey==='la plata'){ if(municipioGeomByName['la plata']) addBoundaryGeoJSON(municipioGeomByName['la plata']); railwayLayers.forEach(function(l){ try{ l.addTo(map); }catch(e){} }); addLocalityBoundariesLaPlata(); } else if(distKey==='berisso'){ if(municipioGeomByName['berisso']) addBoundaryGeoJSON(municipioGeomByName['berisso']); railwayLayers.forEach(function(l){ try{ map.removeLayer(l); }catch(e){} }); } else if(distKey==='ensenada'){ if(municipioGeomByName['ensenada']) addBoundaryGeoJSON(municipioGeomByName['ensenada']); railwayLayers.forEach(function(l){ try{ map.removeLayer(l); }catch(e){} }); } }catch(e){} }
-    fetch('camposfiltrados.geojson').then(function(r){ return r.ok?r.text():Promise.resolve('{}'); }).then(function(text){ var data; try{ data=JSON.parse(text); }catch(_){ data={ features:[] }; } if(!data||!data.features) data={ features:[] }; allSchools=data.features.map(function(f){ var p=f.properties||{}; var hasGeom=f.geometry&&Array.isArray(f.geometry.coordinates); var lat=hasGeom?Number(f.geometry.coordinates[1]):Number(p.latitud||p.lat||p.latitude); var lng=hasGeom?Number(f.geometry.coordinates[0]):Number(p.longitud||p.lng||p.longitude); if(isNaN(lat)||isNaN(lng)){ var canon=normalizeLocalidadName(p.localidad||''); lat=-34.92; lng=-57.95; } f.geometry={ type:'Point', coordinates:[lng,lat] }; p._lat=lat; p._lng=lng; p.localidad_norm=normalizeLocalidadName(p.localidad||''); f.properties=p; return f; });
+    fetch('camposfiltrados.geojson').then(function(r){ return r.ok?r.text():Promise.resolve('{}'); }).then(function(text){ var data; try{ data=JSON.parse(text); }catch(_){ data={ features:[] }; } if(!data||!data.features) data={ features:[] }; var todas=data.features.map(function(f){ var p=f.properties||{}; var hasGeom=f.geometry&&Array.isArray(f.geometry.coordinates); var lat=hasGeom?Number(f.geometry.coordinates[1]):Number(p.latitud||p.lat||p.latitude); var lng=hasGeom?Number(f.geometry.coordinates[0]):Number(p.longitud||p.lng||p.longitude); if(isNaN(lat)||isNaN(lng)){ var canon=normalizeLocalidadName(p.localidad||''); lat=-34.92; lng=-57.95; } f.geometry={ type:'Point', coordinates:[lng,lat] }; p._lat=lat; p._lng=lng; p.localidad_norm=normalizeLocalidadName(p.localidad||''); f.properties=p; return f; }); poiFeatures=todas.filter(function(f){ return (f.properties&&f.properties.tipo_lugar||'')==='lugar_interes_docente'; }); allSchools=todas.filter(function(f){ return (f.properties&&f.properties.tipo_lugar||'')!=='lugar_interes_docente'; });
       var nivelesUnicos = Array.from(new Set(allSchools.map(function(e){ return (e.properties&&e.properties.nivel||'').trim(); }))).filter(function(n){ return n; });
       function normStr(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase(); }
       var nivelesLower = new Set(nivelesUnicos.map(function(n){ return normStr(n); }));
@@ -1158,42 +1242,10 @@
           var comoLine=targetFrame.querySelector('.field-line-comollego');
           var isMobile=((window.innerWidth||1024)<=600)||(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
           var scaleVal=isMobile?1.25:2;
-          var originalScroll=fc.scrollTop;
-          var needsSplit=false;
-          if(generalFields && comoFields){
-            var prevGenDisplay=generalFields.style.display;
-            var prevComoDisplay=comoFields.style.display;
-            if(prevGenDisplay==='none') generalFields.style.display='';
-            if(prevComoDisplay==='none') comoFields.style.display='';
-            fc.scrollTop=0;
-            if(fc.scrollHeight>fc.clientHeight){
-              needsSplit=true;
-            }
-            generalFields.style.display=prevGenDisplay;
-            comoFields.style.display=prevComoDisplay;
-          }
           var visibleCanvas=null;
           var hiddenCanvas=null;
-          if(needsSplit && generalFields && comoFields && comoLine){
-            var prevGenDisplay2=generalFields.style.display;
-            var prevComoDisplay2=comoFields.style.display;
-            fc.scrollTop=0;
-            comoFields.style.display='none';
-            generalFields.style.display='';
-            visibleCanvas=await html2canvas(targetFrame,{ backgroundColor:null, useCORS:true, scale:scaleVal });
-            generalFields.style.display='none';
-            comoFields.style.display='';
-            fc.scrollTop=0;
-            hiddenCanvas=await html2canvas(targetFrame,{ backgroundColor:null, useCORS:true, scale:scaleVal });
-            generalFields.style.display=prevGenDisplay2;
-            comoFields.style.display=prevComoDisplay2;
-            fc.scrollTop=originalScroll;
-          } else {
-            fc.scrollTop=0;
-            visibleCanvas=await html2canvas(targetFrame,{ backgroundColor:null, useCORS:true, scale:scaleVal });
-            hiddenCanvas=visibleCanvas;
-            fc.scrollTop=originalScroll;
-          }
+          visibleCanvas=await html2canvas(targetFrame,{ backgroundColor:null, useCORS:true, scale:scaleVal });
+          hiddenCanvas=visibleCanvas;
           var piz=new Image();
           piz.onload=function(){
             var width=piz.width;
