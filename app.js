@@ -326,7 +326,10 @@ function normalizeLocalidadName(s) {
     'jose melchor romero': 'melchor romero',
     'melchor romero': 'melchor romero',
     'villa montoro': 'villa elvira',
-    'la cumbre': 'san carlos'
+    'la cumbre': 'san carlos',
+    'manuel b. gonnet': 'gonnet',
+    'manuel b gonnet': 'gonnet',
+    'gonnet': 'gonnet'
   };
   const canon = m[t] || t;
   return canon.replace(/(^|\s)\S/g, function(x){ return x.toUpperCase(); });
