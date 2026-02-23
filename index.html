@@ -558,8 +558,14 @@
       <h3>Compartir aplicación</h3>
       <p>Escaneá este código QR con otro móvil para abrir el mapa.</p>
       <img id="qrShareImg" width="180" height="180" alt="Código QR para abrir la aplicación">
-      <br>
-      <button id="qrShareCloseBtn" type="button">Cerrar</button>
+      <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;align-items:center;">
+        <button id="qrShareNativeBtn" type="button" style="padding:4px 12px;border-radius:9999px;border:none;background:#005bbb;color:#fff;font-weight:600;font-size:13px;cursor:pointer;">
+          Compartir con otras apps
+        </button>
+        <button id="qrShareCloseBtn" type="button" style="padding:4px 12px;border-radius:9999px;border:none;background:#222;color:#fff;font-weight:600;font-size:13px;cursor:pointer;">
+          Cerrar
+        </button>
+      </div>
     </div>
   </div>
     <div id="easterEgg" style="display:none;position:fixed;top:20%;left:50%;transform:translate(-50%,-50%);width:200px;height:200px;background:#fff;border-radius:50%;box-shadow:0 0 40px 8px #fff8, 0 8px 32px #0006;z-index:2000;align-items:center;justify-content:center;color:#222;pointer-events:none;overflow:hidden;">
@@ -677,6 +683,7 @@
       if(!btnSplash) return;
       var qrOverlay=document.getElementById('qrShareOverlay');
       var qrImg=document.getElementById('qrShareImg');
+      var qrNative=document.getElementById('qrShareNativeBtn');
       var qrClose=document.getElementById('qrShareCloseBtn');
       var shareUrl='https://ema4k789-coder.github.io/MapaLaRaiz_PWA/';
 
@@ -692,6 +699,32 @@
         qrOverlay.addEventListener('click', function(ev){
           if(ev.target === qrOverlay){
             qrOverlay.style.display='none';
+          }
+        });
+      }
+
+      if(qrNative){
+        qrNative.addEventListener('click', function(){
+          if(navigator && navigator.share){
+            try{
+              navigator.share({
+                title:'Mapa de Escuelas La Raíz',
+                text:'Mapa interactivo de escuelas de La Plata, Berisso y Ensenada',
+                url:shareUrl
+              }).catch(function(){});
+              return;
+            }catch(e){}
+          }
+          try{
+            var dummy=document.createElement('input');
+            dummy.value=shareUrl;
+            document.body.appendChild(dummy);
+            dummy.select();
+            document.execCommand('copy');
+            document.body.removeChild(dummy);
+            alert('Enlace copiado al portapapeles:\\n'+shareUrl);
+          }catch(e){
+            alert('Podés compartir este enlace:\\n'+shareUrl);
           }
         });
       }
