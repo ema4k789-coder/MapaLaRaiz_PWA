@@ -61,7 +61,6 @@
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <script>
     (function(){
       var l = document.querySelector('link[href="style.css"]');
@@ -558,7 +557,7 @@
     <div id="qrShareInner">
       <h3>Compartir aplicación</h3>
       <p>Escaneá este código QR con otro móvil para abrir el mapa.</p>
-      <canvas id="qrShareCanvas"></canvas>
+      <img id="qrShareImg" width="180" height="180" alt="Código QR para abrir la aplicación">
       <br>
       <button id="qrShareCloseBtn" type="button">Cerrar</button>
     </div>
@@ -677,22 +676,14 @@
       var btnSplash=document.getElementById('splashShareBtn');
       if(!btnSplash) return;
       var qrOverlay=document.getElementById('qrShareOverlay');
-      var qrCanvas=document.getElementById('qrShareCanvas');
+      var qrImg=document.getElementById('qrShareImg');
       var qrClose=document.getElementById('qrShareCloseBtn');
+      var shareUrl='https://ema4k789-coder.github.io/MapaLaRaiz_PWA/';
 
       function showQr(){
-        if(!qrOverlay || !qrCanvas) return;
+        if(!qrOverlay || !qrImg) return;
         qrOverlay.style.display='flex';
-        var url = window.location && window.location.href ? window.location.href : 'https://ema4k789-coder.github.io/MapaLaRaiz_PWA/';
-        var ctx = qrCanvas.getContext && qrCanvas.getContext('2d');
-        if(ctx){
-          ctx.clearRect(0,0,qrCanvas.width,qrCanvas.height);
-        }
-        if(window.QRCode && window.QRCode.toCanvas){
-          try{
-            window.QRCode.toCanvas(qrCanvas, url, { width: 180, margin: 1 }, function(){});
-          }catch(e){}
-        }
+        qrImg.src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data='+encodeURIComponent(shareUrl);
       }
       if(qrClose && qrOverlay){
         qrClose.addEventListener('click', function(){
@@ -714,7 +705,7 @@
           navigator.share({
             title:'Mapa de Escuelas La Raíz',
             text:'Mapa interactivo de escuelas de La Plata, Berisso y Ensenada',
-            url:window.location.href
+            url:shareUrl
           }).catch(function(){});
         }catch(e){}
       }
