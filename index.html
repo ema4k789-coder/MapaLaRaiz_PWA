@@ -698,16 +698,6 @@
 
       function doShare(){
         showQr();
-        if(!(navigator && navigator.share)){
-          return;
-        }
-        try{
-          navigator.share({
-            title:'Mapa de Escuelas La Raíz',
-            text:'Mapa interactivo de escuelas de La Plata, Berisso y Ensenada',
-            url:shareUrl
-          }).catch(function(){});
-        }catch(e){}
       }
       btnSplash.addEventListener('click', doShare);
     })();
