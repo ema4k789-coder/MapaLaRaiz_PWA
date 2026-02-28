@@ -1,4 +1,4 @@
-var CACHE_NAME="mapalaraiz-colectivos-pwa-v4";
+var CACHE_NAME="mapalaraiz-colectivos-pwa-v5";
 var CACHE_ASSETS=[
   "./",
   "./index.html",
@@ -23,6 +23,7 @@ self.addEventListener("install",function(event){
       return cache.addAll(CACHE_ASSETS);
     })
   );
+  try{ self.skipWaiting(); }catch(e){}
 });
 
 self.addEventListener("activate",function(event){
@@ -37,6 +38,7 @@ self.addEventListener("activate",function(event){
       );
     })
   );
+  try{ self.clients.claim(); }catch(e){}
 });
 
 self.addEventListener("fetch",function(event){

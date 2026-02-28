@@ -238,7 +238,6 @@
         z-index:2100;
         text-shadow:0 2px 4px rgba(0,0,0,0.6);
       }
-      #easterEgg{ top: env(safe-area-inset-top, 0px) !important; left:50%; transform:translateX(-50%); }
     .bus-route-label{
       font-size:9px;
       padding:1px 3px;
@@ -309,21 +308,9 @@
       display: none;
     }
 
-    #flagText { 
-      position: absolute; 
-      top: 20px; 
-      left: 0; 
-      right: 0; 
-      text-align: center; 
-      font-family: 'CooperBlackCustom', 'Cooper Black', serif; 
-      font-size: 2.8em; 
-      color: black; 
-      font-weight: normal; 
-      letter-spacing: 1px; 
-      text-shadow: 0 2px 4px rgba(0,0,0,0.1); 
-      animation: flagTextWave 3s ease-in-out infinite; 
-      transform-origin: center center;
-    }
+    #flagText { position:absolute; top:18px; left:0; right:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:2px; text-align:center; color:black; font-weight:normal; letter-spacing:1px; text-shadow:0 2px 4px rgba(0,0,0,0.1); animation: flagTextWave 3s ease-in-out infinite; transform-origin:center center; }
+    #flagText .flagTitle { font-family:'CooperBlackCustom','Cooper Black',serif; font-size:2.8em; line-height:1; white-space:nowrap; }
+    #flagText .flagSubtitle { font-family:'CalibriCustom', Arial, sans-serif; font-size:1.15em; font-weight:700; line-height:1; letter-spacing:0.2px; white-space:nowrap; transform-origin:center top; display:inline-block; }
     @keyframes flagTextWave {
       0% { transform: rotateY(0deg) translateX(0px) translateY(0px); }
       10% { transform: rotateY(1.5deg) translateX(1px) translateY(-0.5px); }
@@ -466,15 +453,6 @@
         height: 120px;
       }
       
-      /* Ajustar easter egg para que no se superponga */
-      #easterEgg {
-        font-size: 0.85em;
-        max-width: 250px;
-        padding: 12px;
-        top: env(safe-area-inset-top, 0px) !important;
-        left: 50%;
-        transform: translateX(-50%);
-      }
     }
     
     /* Estilos adicionales para pantallas muy pequeñas */
@@ -513,14 +491,6 @@
         bottom: -140px;
       }
       
-      #easterEgg {
-        font-size: 0.8em;
-        max-width: 220px;
-        padding: 10px;
-        top: env(safe-area-inset-top, 0px) !important;
-        left: 50%;
-        transform: translateX(-50%);
-      }
     }
   </style>
   <script>
@@ -625,23 +595,14 @@
       </div>
     </div>
   </div>
-    <div id="easterEgg" style="display:none;position:fixed;top:0px;left:50%;transform:translateX(-50%);width:200px;height:200px;background:#fff;border-radius:50%;box-shadow:0 0 40px 8px #fff8, 0 8px 32px #0006;z-index:2000;align-items:center;justify-content:center;color:#222;pointer-events:none;overflow:hidden;">
-      <div style="display:grid;place-items:center;box-sizing:border-box;width:92%;height:92%;padding:0 8px;text-align:center;font-weight:bold;font-size:1.2em;letter-spacing:0.6px;gap:6px;line-height:1.2;color:#d0002a;text-shadow:0 2px 10px rgba(0,0,0,0.25),0 1px 4px rgba(255,255,255,0.6);">
-        <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
-          <span>😊</span>
-          <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-            <span>Creado</span>
-            <span>por Emanuel Alvarez</span>
-          </div>
-          <span>🤪</span>
-        </div>
-      </div>
-    </div>
       <div id="flagContainer">
         <div id="flagPoleLeft"></div>
         <div id="flagPoleRight"></div>
         <div id="flagFabric">
-          <div id="flagText">La Raíz</div>
+          <div id="flagText">
+            <div class="flagTitle">La Raíz</div>
+            <div class="flagSubtitle">Agrupación docente</div>
+          </div>
         </div>
 
       </div>
@@ -716,8 +677,8 @@
     function hideSchoolOverlay(){ var ov=document.getElementById('schoolOverlay'); if(ov){ ov.classList.remove('active'); } if(typeof clearBusHighlight==='function'){ try{ clearBusHighlight(); }catch(e){} } }
     function wirePopupInteractions(root,p,isOverlay){ if(!root) return; var frame=root.querySelector('.popup-frame'); var imgEl=root.querySelector('.frame-img'); if(frame && imgEl){ imgEl.onerror=function(){ try{ imgEl.remove(); }catch(e){} }; if(window.getFrameURL){ window.getFrameURL().then(function(url){ if(url) imgEl.src=url; }); } } var dlBtn=root.querySelector('.popup-dl-btn'); if(dlBtn){ dlBtn.onclick = async function(ev){ ev.stopPropagation(); var targetFrame=root.querySelector('.popup-frame'); if(!targetFrame || typeof html2canvas==='undefined') return; var fc=targetFrame.querySelector('.frame-content'); if(!fc) return; var isMobile=((window.innerWidth||1024)<=600)||(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)); var scaleVal=isMobile?1.25:2; var visibleCanvas=await html2canvas(targetFrame,{ backgroundColor:null, useCORS:true, scale:scaleVal }); var hiddenCanvas=visibleCanvas; var piz = new Image(); piz.onload = function(){ var width=piz.width, height=piz.height; var totalWidth=hiddenCanvas && hiddenCanvas!==visibleCanvas ? width*2 : width; var finalCanvas=document.createElement('canvas'); finalCanvas.width=totalWidth; finalCanvas.height=height; var ctx=finalCanvas.getContext('2d'); ctx.drawImage(piz,0,0,width,height); ctx.drawImage(visibleCanvas,0,0,width,height); if(hiddenCanvas && hiddenCanvas!==visibleCanvas){ ctx.drawImage(piz,width,0,width,height); ctx.drawImage(hiddenCanvas,width,0,width,height); } var fname=String(p.nombre||'escuela').replace(/[^a-z0-9 -]/gi,'_'); if(!fname) fname='escuela'; fname += (hiddenCanvas && hiddenCanvas!==visibleCanvas)?'_doble.jpg':'.jpg'; var ua=(navigator.userAgent||''); var isIOS=/iPhone|iPad|iPod/i.test(ua); var isAndroid=/Android/i.test(ua); var isMobileDevice=isIOS||isAndroid; finalCanvas.toBlob(function(blob){ if(!blob) return; var url=URL.createObjectURL(blob); if(isMobileDevice){ try{ window.open(url,'_blank'); }catch(e){} setTimeout(function(){ try{ URL.revokeObjectURL(url); }catch(e){} }, 5000); alert('La imagen se abrió en una nueva pestaña: '+fname+' (usa Guardar imagen del navegador.)'); } else { var a=document.createElement('a'); a.href=url; a.download=fname; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); alert('Imagen descargada: '+fname); } }, 'image/jpeg', 0.92); }; piz.onerror=function(){ var ancho=visibleCanvas.width, alto=visibleCanvas.height; var finalCanvas=document.createElement('canvas'); finalCanvas.width=ancho; finalCanvas.height=alto; var ctx=finalCanvas.getContext('2d'); ctx.drawImage(visibleCanvas,0,0,ancho,alto); var fname=String(p.nombre||'escuela').replace(/[^a-z0-9 -]/gi,'_')+'.jpg'; var ua=(navigator.userAgent||''); var isIOS=/iPhone|iPad|iPod/i.test(ua); var isAndroid=/Android/i.test(ua); var isMobileDevice=isIOS||isAndroid; finalCanvas.toBlob(function(blob){ if(!blob) return; var url=URL.createObjectURL(blob); if(isMobileDevice){ try{ window.open(url,'_blank'); }catch(e){} setTimeout(function(){ try{ URL.revokeObjectURL(url); }catch(e){} }, 5000); alert('La imagen se abrió en una nueva pestaña: '+fname+' (usa Guardar imagen del navegador.)'); } else { var a=document.createElement('a'); a.href=url; a.download=fname; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); alert('Imagen descargada: '+fname); } }, 'image/jpeg', 0.92); }; piz.src = (targetFrame.querySelector('.frame-img') && targetFrame.querySelector('.frame-img').src) || 'pizarron.png'; }; } var volverBtn=root.querySelector('.popup-volver-btn'); if(volverBtn){ volverBtn.onclick=function(ev){ ev.stopPropagation(); if(isOverlay){ hideSchoolOverlay(); } else { map.closePopup(); } }; } }
     function showSchoolOverlay(html,p){ var ov=document.getElementById('schoolOverlay'); var inner=document.getElementById('schoolOverlayInner'); if(!ov||!inner) return; inner.innerHTML=html; ov.style.paddingTop='0'; ov.classList.add('active'); if(window.wirePopupInteractions){ window.wirePopupInteractions(inner,p,true); } }
-    function startApp(){ var s=document.getElementById('splash'); var t=document.querySelector('.splash-texts-container'); var m=document.getElementById('mainApp'); var f=document.getElementById('flagContainer'); var e=document.getElementById('easterEgg'); if(s) s.style.display='none'; if(t) t.style.display='none'; if(f) f.style.display='none'; if(e) e.style.display='none'; if(m) m.style.display='block'; window.inSplashScreen=false; setTimeout(function(){ try{ map.invalidateSize(); }catch(e){} }, 350); }
-    (function(){ var clickCount=0; var hideTimer=null; var circle=document.querySelector('.circle-bounce'); var btn=document.getElementById('startBtn'); function isOutside(t){ return !(circle&&circle.contains(t)) && !(btn&&btn.contains(t)); } function isInSplash(){ return window.inSplashScreen!==false; } function showEgg(){ var egg=document.getElementById('easterEgg'); if(!egg) return; egg.style.display='flex'; if(hideTimer) clearTimeout(hideTimer); hideTimer=setTimeout(function(){ egg.style.display='none'; }, 4000); } function showFlag(){ var flag=document.getElementById('flagContainer'); var circle=document.querySelector('.circle-bounce'); if(!flag || !circle) return; circle.style.display='none'; flag.style.display='block'; 
+    function startApp(){ var s=document.getElementById('splash'); var t=document.querySelector('.splash-texts-container'); var m=document.getElementById('mainApp'); var f=document.getElementById('flagContainer'); if(s) s.style.display='none'; if(t) t.style.display='none'; if(f) f.style.display='none'; if(m) m.style.display='block'; window.inSplashScreen=false; setTimeout(function(){ try{ map.invalidateSize(); }catch(e){} }, 350); }
+    (function(){ var circle=document.querySelector('.circle-bounce'); function isInSplash(){ return window.inSplashScreen!==false; } function showFlag(){ var flag=document.getElementById('flagContainer'); var circle=document.querySelector('.circle-bounce'); if(!flag || !circle) return; circle.style.display='none'; flag.style.display='block'; 
       // Detectar si es móvil
       var isMobile = window.innerWidth <= 600;
        if(isMobile) {
@@ -733,7 +694,7 @@
          flag.style.transform='translate(-50%, 0)';
          flag.style.top='auto';
        }
-      if(hideTimer) clearTimeout(hideTimer); } function hideFlag(){ var flag=document.getElementById('flagContainer'); var circle=document.querySelector('.circle-bounce'); if(!flag || !circle) return; flag.style.display='none'; circle.style.display='flex'; if(hideTimer) clearTimeout(hideTimer); } document.addEventListener('click', function(e){ if(!isInSplash()) return; if(isOutside(e.target)){ clickCount++; if(clickCount>=7){ clickCount=0; showEgg(); } } else { clickCount=0; } }, true); var circleElement=document.querySelector('.circle-bounce'); if(circleElement){ circleElement.addEventListener('dblclick', function(e){ if(!isInSplash()) return; e.stopPropagation(); showFlag(); }); } var flagElement=document.getElementById('flagContainer'); if(flagElement){ flagElement.addEventListener('click', function(e){ e.stopPropagation(); hideFlag(); }); } })();
+      } function hideFlag(){ var flag=document.getElementById('flagContainer'); var circle=document.querySelector('.circle-bounce'); if(!flag || !circle) return; flag.style.display='none'; circle.style.display='flex'; } var circleElement=document.querySelector('.circle-bounce'); if(circleElement){ circleElement.addEventListener('dblclick', function(e){ if(!isInSplash()) return; e.stopPropagation(); showFlag(); }); } var flagElement=document.getElementById('flagContainer'); if(flagElement){ flagElement.addEventListener('click', function(e){ e.stopPropagation(); hideFlag(); }); } })();
     document.getElementById('startBtn').addEventListener('click', startApp);
     (function(){
       var btnSplash=document.getElementById('splashShareBtn');
@@ -832,6 +793,34 @@
         }catch(e){}
       }
       btnSplash.addEventListener('click', doShare);
+    })();
+
+    (function(){
+      function syncFlagTextWidth(){
+        var title=document.querySelector('#flagText .flagTitle');
+        var sub=document.querySelector('#flagText .flagSubtitle');
+        if(!title || !sub) return;
+        sub.style.transform='';
+        var tw=title.getBoundingClientRect().width;
+        var sw=sub.getBoundingClientRect().width;
+        if(!tw || !sw) return;
+        var scale=tw/sw;
+        if(scale>1.6) scale=1.6;
+        if(scale<0.5) scale=0.5;
+        sub.style.transform='scaleX(' + scale.toFixed(3) + ')';
+      }
+      try{ window.addEventListener('resize', syncFlagTextWidth); }catch(e){}
+      try{
+        if(document.fonts && document.fonts.ready && document.fonts.ready.then){
+          document.fonts.ready.then(function(){ syncFlagTextWidth(); });
+        }
+      }catch(e){}
+      if(document.readyState==='loading'){
+        document.addEventListener('DOMContentLoaded', function(){ syncFlagTextWidth(); setTimeout(syncFlagTextWidth, 0); });
+      } else {
+        syncFlagTextWidth();
+        setTimeout(syncFlagTextWidth, 0);
+      }
     })();
 
     map = L.map('map').setView([-34.921, -57.954], 11);
