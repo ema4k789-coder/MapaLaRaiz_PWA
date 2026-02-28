@@ -7,9 +7,9 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 const poiIcon = L.divIcon({
   className: 'poi-building-wrapper',
   html: "<div class='poi-building-icon'>🏛</div>",
-  iconSize: [28, 28],
-  iconAnchor: [14, 28],
-  popupAnchor: [0, -24]
+  iconSize: [60, 60],
+  iconAnchor: [30, 60],
+  popupAnchor: [0, -40]
 });
 
 map.createPane('boundariesGlowPane');
@@ -326,10 +326,7 @@ function normalizeLocalidadName(s) {
     'jose melchor romero': 'melchor romero',
     'melchor romero': 'melchor romero',
     'villa montoro': 'villa elvira',
-    'la cumbre': 'san carlos',
-    'manuel b. gonnet': 'gonnet',
-    'manuel b gonnet': 'gonnet',
-    'gonnet': 'gonnet'
+    'la cumbre': 'san carlos'
   };
   const canon = m[t] || t;
   return canon.replace(/(^|\s)\S/g, function(x){ return x.toUpperCase(); });
@@ -600,17 +597,27 @@ function renderPoiMarkers() {
   if (editModeActive) return;
   clearPoiMarkers();
   poiFeatures.forEach(feature => {
-    const coords = feature.geometry.coordinates;
+    const coords = feature.geometry && feature.geometry.coordinates;
+    if (!coords || coords.length < 2) return;
+    const lat = Number(coords[1]);
+    const lng = Number(coords[0]);
+    if (isNaN(lat) || isNaN(lng)) return;
+
     const props = feature.properties || {};
-    const marker = L.marker([coords[1], coords[0]], {
+    const marker = L.marker([lat, lng], {
       icon: poiIcon
     }).addTo(map);
-    let nombreBase = props.nombre || props.nombre_lugar || props.titulo || props.descripcion || '';
+
+    let nombreBase = props.Lugar || props.nombre || props.nombre_lugar || props.titulo || props.descripcion || '';
     let nombreFinal = nombreBase || 'Lugar de interés docente';
-    let datosHtml = `<div class='popup-frame'><img class='frame-img' src='pizarron.png' alt=''><button class='popup-dl-btn' title='Descargar imagen'>⬇</button><div class='frame-content'>`;
-    datosHtml += `<div class='name-tag'>${nombreFinal}</div>`;
+    let datosHtml = `<div class='popup-frame'><img class='frame-img' src='pizarron.png' alt=''><button class='popup-dl-btn' title='Descargar ficha'>💾</button><div class='frame-content'>`;
+    datosHtml += `<div class='poi-name-tag'>${nombreFinal}</div>`;
     for (const clave in props) {
-      if (["tipo_lugar","origen_lugar"].includes(clave)) continue;
+      const kl = (clave || '').toString().toLowerCase();
+      if (kl.indexOf('lat') !== -1 || kl.indexOf('long') !== -1 || kl.indexOf('coord') !== -1) continue;
+      if (clave && clave[0] === '_') continue;
+      if (kl === 'tipo_lugar' || kl === 'origen_lugar' || kl === 'localidad_norm') continue;
+      if (clave === 'Lugar') continue;
       datosHtml += `<div class='field-line'><b>${clave}:</b> ${props[clave]}</div>`;
     }
     datosHtml += `</div><button type='button' class='popup-volver-btn'>VOLVER</button></div>`;

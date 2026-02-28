@@ -102,6 +102,19 @@ html, body {
   font-weight: 800;
   font-size: 1.05em;
 }
+.poi-name-tag {
+  display: inline-block;
+  background: #ffeb3b;
+  color: #000;
+  border: 3px solid #000;
+  border-radius: 10px;
+  padding: 6px 12px;
+  margin-bottom: 10px;
+  font-weight: 900;
+  font-size: 1.3em;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
 .field-line {
   display: inline-block;
   background: #fff;
@@ -265,16 +278,35 @@ html, body {
 }
 
 .poi-building-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #ffffff, #ffeb3b, #f44336);
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffeb3b 0%, #ff9800 50%, #f44336 100%);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  border: 2px solid #000;
-  box-shadow: 0 0 10px rgba(0,0,0,0.6);
-  font-size: 18px;
+  border: 4px solid #ffffff;
+  box-shadow: 0 0 22px rgba(0,0,0,0.95);
+  position: relative;
+}
+.poi-building-icon::before {
+  content: '';
+  position: absolute;
+  bottom: 8px;
+  width: 56px;
+  height: 34px;
+  background: #3f51b5;
+  border-radius: 4px 4px 6px 6px;
+  box-shadow: 0 0 0 3px #ffffff;
+}
+.poi-building-icon::after {
+  content: '';
+  position: absolute;
+  bottom: 18px;
+  width: 40px;
+  height: 16px;
+  background: #ffeb3b;
+  box-shadow: inset 0 0 0 2px #3f51b5;
 }
   padding: 4px 8px 6px;
   font-size: 0.75em;

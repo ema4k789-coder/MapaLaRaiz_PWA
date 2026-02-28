@@ -1,7 +1,8 @@
-var CACHE_NAME="mapalaraiz-colectivos-pwa-v6";
+var CACHE_NAME="mapalaraiz-colectivos-pwa-v7";
 var CACHE_ASSETS=[
   "./",
   "./index.html",
+  "./manifest.webmanifest",
   "./style.css",
   "./leaflet.css",
   "./leaflet.js",
@@ -15,7 +16,7 @@ var CACHE_ASSETS=[
   "./recorridos_lp.geojson",
   "./CalibriCustom.TTF",
   "./CooperBlackCustom.otf",
-  "https://cdn.jsdelivr.net/npm/qrcode@1.5.3/lib/browser.min.js"
+  "./qrcode.min.js"
 ];
 
 self.addEventListener("install",function(event){
