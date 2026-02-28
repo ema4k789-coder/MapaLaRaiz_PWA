@@ -68,7 +68,7 @@
     if("serviceWorker" in navigator){
       window.addEventListener("load",function(){
         try{
-          navigator.serviceWorker.register("service-worker.js?v=10", { updateViaCache: "none" }).then(function(reg){
+          navigator.serviceWorker.register("service-worker.js?v=11", { updateViaCache: "none" }).then(function(reg){
             try{ reg.update(); }catch(e){}
             try{
               if(reg.waiting){ reg.waiting.postMessage({ type: "SKIP_WAITING" }); }
@@ -738,27 +738,6 @@
     })();
   </script>
   <script>
-    (function(){
-      function killEgg(){
-        try{ var egg=document.getElementById('easterEgg'); if(egg && egg.parentNode) egg.parentNode.removeChild(egg); }catch(e){}
-        try{ var style=document.getElementById('noEggStyle'); if(!style){ style=document.createElement('style'); style.id='noEggStyle'; style.textContent='#easterEgg{display:none !important; visibility:hidden !important; pointer-events:none !important;}'; (document.head||document.documentElement).appendChild(style); } }catch(e){}
-        try{
-          var root=document.body;
-          if(!root) return;
-          var walker=document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, null);
-          var toRemove=[];
-          while(walker.nextNode()){
-            var n=walker.currentNode;
-            var t='';
-            try{ t=n.textContent||''; }catch(e){}
-            if(t && /Creado\s*por\s*Emanuel|Emanuel Alvarez/i.test(t)) toRemove.push(n);
-          }
-          for(var i=0;i<toRemove.length;i++){ try{ var x=toRemove[i]; if(x && x.parentNode) x.parentNode.removeChild(x); }catch(e){} }
-        }catch(e){}
-      }
-      killEgg();
-      try{ document.addEventListener('DOMContentLoaded', killEgg, { once:true }); }catch(e){ try{ document.addEventListener('DOMContentLoaded', killEgg); }catch(_){} }
-    })();
   </script>
   <script>
     (function(){
