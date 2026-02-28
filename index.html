@@ -55,7 +55,7 @@
     if("serviceWorker" in navigator){
       window.addEventListener("load",function(){
         try{
-          navigator.serviceWorker.register("service-worker.js?v=8", { updateViaCache: "none" }).then(function(reg){
+          navigator.serviceWorker.register("service-worker.js?v=9", { updateViaCache: "none" }).then(function(reg){
             try{ reg.update(); }catch(e){}
             try{
               if(reg.waiting){ reg.waiting.postMessage({ type: "SKIP_WAITING" }); }
@@ -90,7 +90,7 @@
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/lib/browser.min.js"></script>
   <script>
     (function(){
       var l = document.querySelector('link[href="style.css"]');
