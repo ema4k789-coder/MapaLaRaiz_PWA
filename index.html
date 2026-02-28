@@ -55,12 +55,42 @@
     if("serviceWorker" in navigator){
       window.addEventListener("load",function(){
         try{
-          navigator.serviceWorker.register("service-worker.js");
+          navigator.serviceWorker.register("service-worker.js?v=8", { updateViaCache: "none" }).then(function(reg){
+            try{ reg.update(); }catch(e){}
+            try{
+              if(reg.waiting){ reg.waiting.postMessage({ type: "SKIP_WAITING" }); }
+            }catch(e){}
+            try{
+              reg.addEventListener("updatefound", function(){
+                var sw = reg.installing;
+                if(!sw) return;
+                sw.addEventListener("statechange", function(){
+                  if(sw.state === "installed"){
+                    try{
+                      if(navigator.serviceWorker.controller){
+                        sw.postMessage({ type: "SKIP_WAITING" });
+                      }
+                    }catch(e){}
+                  }
+                });
+              });
+            }catch(e){}
+          });
+          try{
+            navigator.serviceWorker.addEventListener("controllerchange", function(){
+              try{
+                if(window.__swReloadOnce) return;
+                window.__swReloadOnce = true;
+                window.location.reload();
+              }catch(e){}
+            });
+          }catch(e){}
         }catch(e){}
       });
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <script>
     (function(){
       var l = document.querySelector('link[href="style.css"]');
@@ -179,15 +209,15 @@
     @keyframes bounce { 0%{ transform: translateY(0);} 20%{ transform: translateY(-36px);} 40%{ transform: translateY(0);} 60%{ transform: translateY(-22px);} 80%{ transform: translateY(0);} 100%{ transform: translateY(0);} }
     .la-raiz { font-size:3em; color:#222; letter-spacing:2px; font-weight:bold; font-family:'CooperBlackCustom','Cooper Black', serif; }
     .agrupacion { font-size:1.5em; color:#222; font-weight:bold; margin-top:8px; font-family:'CalibriCustom', Arial, sans-serif; }
-    .splash-title { font-size:2.2em; color:#fff; font-weight:bold; letter-spacing:1px; margin-bottom:12px; text-align:center; position:fixed; top:65%; left:50%; transform:translateX(-50%); width:90%; max-width:600px; }
-.splash-subtitle { font-size:1.3em; color:#fff; margin-bottom:18px; text-align:center; position:fixed; top:70%; left:50%; transform:translateX(-50%); width:90%; max-width:600px; }
+    .splash-title { font-size:2.2em; color:#fff; font-weight:bold; letter-spacing:1px; margin-bottom:12px; text-align:center; position:fixed; top:64%; left:50%; transform:translateX(-50%); width:90%; max-width:600px; }
+ .splash-subtitle { font-size:1.3em; color:#fff; margin-bottom:18px; text-align:center; position:fixed; top:68%; left:50%; transform:translateX(-50%); width:90%; max-width:600px; }
     .splash-btn { background:#fff; color:#222; font-size:1.1em; font-weight:bold; border:none; border-radius:16px; padding:12px 32px; cursor:pointer; letter-spacing:2px; transition: box-shadow 0.3s ease, background-color 0.3s ease; animation: pulseSoft 2.2s infinite; }
      .splash-texts-container { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:15; }
       #splash { z-index:5; }
       #flagContainer { z-index:20; }
-      .splash-texts-container .splash-title { position:absolute; top:68%; left:50%; transform:translateX(-50%); font-size:2.2em; color:#fff; font-weight:bold; letter-spacing:1px; text-align:center; width:90%; max-width:600px; pointer-events:auto; margin-bottom:25px; }
-      .splash-texts-container .splash-subtitle { position:absolute; top:75%; left:50%; transform:translateX(-50%); font-size:1.3em; color:#fff; text-align:center; width:auto; max-width:80%; pointer-events:auto; line-height:1.2; white-space:nowrap; }
-      .btn-container { position:absolute; bottom:12%; left:50%; transform:translateX(-50%); width:260px; pointer-events:auto; }
+      .splash-texts-container .splash-title { position:absolute; top:64%; left:50%; transform:translateX(-50%); font-size:2.2em; color:#fff; font-weight:bold; letter-spacing:1px; text-align:center; width:90%; max-width:600px; pointer-events:auto; margin-bottom:25px; }
+      .splash-texts-container .splash-subtitle { position:absolute; top:68%; left:50%; transform:translateX(-50%); font-size:1.3em; color:#fff; text-align:center; width:auto; max-width:80%; pointer-events:auto; line-height:1.2; white-space:nowrap; }
+      .btn-container { position:absolute; bottom:12%; bottom: calc(12% + constant(safe-area-inset-bottom)); bottom: calc(12% + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); width:260px; pointer-events:auto; }
       .btn-container .splash-btn + .splash-btn { margin-top:12px; }
       .splash-texts-container .splash-btn { width:100%; background:#fff; color:#222; font-size:1.0em; font-weight:bold; border:none; border-radius:25px; padding:16px 15px; cursor:pointer; letter-spacing:1px; transition: all 0.3s ease; animation: pulseButton 2.2s infinite; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; position: relative; box-shadow: 0 0 0 rgba(255,255,255,0.3) inset; }
       .splash-texts-container #startBtn { box-shadow: 0 0 24px rgba(255,255,255,0.5) inset, 0 8px 28px rgba(0,0,0,0.35); }
@@ -208,6 +238,7 @@
         z-index:2100;
         text-shadow:0 2px 4px rgba(0,0,0,0.6);
       }
+      #easterEgg{ top: env(safe-area-inset-top, 0px) !important; left:50%; transform:translateX(-50%); }
     .bus-route-label{
       font-size:9px;
       padding:1px 3px;
@@ -233,7 +264,7 @@
      @keyframes pulse { 0%{ box-shadow: 0 1px 1px 0 #fff0, 0 1px 1px #0001;} 50%{ box-shadow: 0 4px 8px 0 #fff0, 0 4px 8px #2222;} 100%{ box-shadow: 0 1px 1px 0 #fff0, 0 1px 1px #0001;} }
     #mainApp { display:none; height:100%; position:fixed; top:0; left:0; width:100%; }
 
-    #flagContainer { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 380px; height: 250px; z-index: 2001; display: none; cursor: pointer; overflow: visible; }
+    #flagContainer { position: fixed; top: 18%; left: 50%; transform: translate(-50%, -50%); width: 380px; height: 250px; z-index: 2001; display: none; cursor: pointer; overflow: visible; }
     #flagPoleLeft, #flagPoleRight { position: absolute; bottom: -200px; width: 10px; height: 450px; background: linear-gradient(to right, #8B4513, #A0522D, #8B4513); border-radius: 5px; box-shadow: 2px 0 6px rgba(0,0,0,0.3); }
     #flagPoleLeft { left: 15px; }
     #flagPoleRight { right: 15px; }
@@ -399,7 +430,9 @@
       
       /* Ajustar botón */
        .btn-container {
-         bottom: 7%;
+        bottom: 8%;
+        bottom: calc(8% + constant(safe-area-inset-bottom));
+        bottom: calc(8% + env(safe-area-inset-bottom));
          width: 220px;
        }
       .splash-texts-container .splash-btn {
@@ -413,6 +446,7 @@
         width: 320px;
         height: 200px;
         max-width: 95vw;
+        top: 16%;
       }
       
       /* Ajustar cañas para que se vean en móvil */
@@ -437,9 +471,9 @@
         font-size: 0.85em;
         max-width: 250px;
         padding: 12px;
-        top: 20%;
+        top: env(safe-area-inset-top, 0px) !important;
         left: 50%;
-        transform: translate(-50%, -50%);
+        transform: translateX(-50%);
       }
     }
     
@@ -462,13 +496,16 @@
        }
       
       .btn-container {
-         bottom: 5%;
+         bottom: 6%;
+         bottom: calc(6% + constant(safe-area-inset-bottom));
+         bottom: calc(6% + env(safe-area-inset-bottom));
          width: 200px;
        }
       
       #flagContainer {
         width: 280px;
         height: 180px;
+        top: 14%;
       }
       
       #flagPoleLeft, #flagPoleRight {
@@ -480,8 +517,9 @@
         font-size: 0.8em;
         max-width: 220px;
         padding: 10px;
-        top: 20%;
-        transform: translate(-50%, -50%);
+        top: env(safe-area-inset-top, 0px) !important;
+        left: 50%;
+        transform: translateX(-50%);
       }
     }
   </style>
@@ -550,14 +588,33 @@
       <button class="splash-btn" id="splashShareBtn" type="button"><span>⤴ Compartir aplicación</span></button>
     </div>
     <div class="splash-version-tag">
-      Versión MapaLaRaiz PWA – 2026-02-23 09:00 (AR)
+      Versión MapaLaRaiz PWA – 2026-02-23 09:00 (AR) – <span id="buildStamp"></span>
     </div>
   </div>
+  <script>
+    (function(){
+      var el = document.getElementById('buildStamp');
+      if(!el) return;
+      el.textContent = String(Date.now());
+    })();
+  </script>
   <div id="qrShareOverlay">
     <div id="qrShareInner">
       <h3>Compartir aplicación</h3>
       <p>Escaneá este código QR con otro móvil para abrir el mapa.</p>
-      <img id="qrShareImg" width="180" height="180" alt="Código QR para abrir la aplicación">
+      <canvas id="qrShareCanvas"></canvas>
+      <div style="margin-top:10px;font-size:13px;font-weight:600;">Seguinos en nuestras redes</div>
+      <div style="margin-top:6px;display:flex;gap:14px;justify-content:center;align-items:center;">
+        <a href="https://www.facebook.com/la.raiz.la.plata" target="_blank" rel="noopener noreferrer" aria-label="Facebook La Raíz" style="text-decoration:none;">
+          <span style="width:26px;height:26px;border-radius:50%;background:#1877f2;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;">f</span>
+        </a>
+        <a href="https://www.instagram.com/laraizdocente/" target="_blank" rel="noopener noreferrer" aria-label="Instagram La Raíz" style="text-decoration:none;">
+          <span style="width:26px;height:26px;border-radius:7px;background:radial-gradient(circle at 30% 30%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;">I</span>
+        </a>
+        <a href="https://x.com/LaRaizDocente" target="_blank" rel="noopener noreferrer" aria-label="Twitter/X La Raíz" style="text-decoration:none;">
+          <span style="width:26px;height:26px;border-radius:6px;background:#000;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;">X</span>
+        </a>
+      </div>
       <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;align-items:center;">
         <button id="qrShareNativeBtn" type="button" style="padding:4px 12px;border-radius:9999px;border:none;background:#005bbb;color:#fff;font-weight:600;font-size:13px;cursor:pointer;">
           Compartir con otras apps
@@ -568,7 +625,7 @@
       </div>
     </div>
   </div>
-    <div id="easterEgg" style="display:none;position:fixed;top:20%;left:50%;transform:translate(-50%,-50%);width:200px;height:200px;background:#fff;border-radius:50%;box-shadow:0 0 40px 8px #fff8, 0 8px 32px #0006;z-index:2000;align-items:center;justify-content:center;color:#222;pointer-events:none;overflow:hidden;">
+    <div id="easterEgg" style="display:none;position:fixed;top:0px;left:50%;transform:translateX(-50%);width:200px;height:200px;background:#fff;border-radius:50%;box-shadow:0 0 40px 8px #fff8, 0 8px 32px #0006;z-index:2000;align-items:center;justify-content:center;color:#222;pointer-events:none;overflow:hidden;">
       <div style="display:grid;place-items:center;box-sizing:border-box;width:92%;height:92%;padding:0 8px;text-align:center;font-weight:bold;font-size:1.2em;letter-spacing:0.6px;gap:6px;line-height:1.2;color:#d0002a;text-shadow:0 2px 10px rgba(0,0,0,0.25),0 1px 4px rgba(255,255,255,0.6);">
         <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
           <span>😊</span>
@@ -682,15 +739,30 @@
       var btnSplash=document.getElementById('splashShareBtn');
       if(!btnSplash) return;
       var qrOverlay=document.getElementById('qrShareOverlay');
-      var qrImg=document.getElementById('qrShareImg');
-      var qrNative=document.getElementById('qrShareNativeBtn');
+      var qrCanvas=document.getElementById('qrShareCanvas');
       var qrClose=document.getElementById('qrShareCloseBtn');
+      var qrNative=document.getElementById('qrShareNativeBtn');
       var shareUrl='https://ema4k789-coder.github.io/MapaLaRaiz_PWA/';
 
       function showQr(){
-        if(!qrOverlay || !qrImg) return;
+        if(!qrOverlay || !qrCanvas) return;
         qrOverlay.style.display='flex';
-        qrImg.src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data='+encodeURIComponent(shareUrl);
+        var url = shareUrl;
+        qrCanvas.width = 220;
+        qrCanvas.height = 220;
+        var ctx = qrCanvas.getContext && qrCanvas.getContext('2d');
+        if(ctx){
+          ctx.clearRect(0,0,qrCanvas.width,qrCanvas.height);
+        }
+        var QRLib = null;
+        if(window.QRCode) QRLib = window.QRCode;
+        else if(window.qrcode) QRLib = window.qrcode;
+        else if(typeof QRCode !== "undefined") QRLib = QRCode;
+        if(QRLib && typeof QRLib.toCanvas === "function"){
+          try{
+            QRLib.toCanvas(qrCanvas, url, { width: 200, margin: 1 }, function(){});
+          }catch(e){}
+        }
       }
       if(qrClose && qrOverlay){
         qrClose.addEventListener('click', function(){
@@ -705,16 +777,33 @@
 
       if(qrNative){
         qrNative.addEventListener('click', function(){
-          if(navigator && navigator.share){
-            try{
-              navigator.share({
-                title:'Mapa de Escuelas La Raíz',
-                text:'Mapa interactivo de escuelas de La Plata, Berisso y Ensenada',
-                url:shareUrl
-              }).catch(function(){});
+          var data={ title:'Mapa de Escuelas La Raíz', text:'Mapa interactivo de escuelas de La Plata, Berisso y Ensenada', url:shareUrl };
+          try{
+            if(navigator && navigator.share){
+              try{
+                if(navigator.canShare && !navigator.canShare(data)) throw new Error('cant_share');
+              }catch(e){}
+              navigator.share(data).catch(function(){
+                try{
+                  var dummy=document.createElement('input');
+                  dummy.value=shareUrl;
+                  document.body.appendChild(dummy);
+                  dummy.select();
+                  document.execCommand('copy');
+                  document.body.removeChild(dummy);
+                  alert('Enlace copiado al portapapeles:\n'+shareUrl);
+                }catch(e){
+                  alert('Podés compartir este enlace:\n'+shareUrl);
+                }
+              });
               return;
-            }catch(e){}
-          }
+            }
+          }catch(e){}
+          try{
+            if(typeof window.isSecureContext==='boolean' && !window.isSecureContext){
+              alert('Para abrir el menú nativo de compartir, abrí el mapa desde:\n'+shareUrl);
+            }
+          }catch(e){}
           try{
             var dummy=document.createElement('input');
             dummy.value=shareUrl;
@@ -722,15 +811,25 @@
             dummy.select();
             document.execCommand('copy');
             document.body.removeChild(dummy);
-            alert('Enlace copiado al portapapeles:\\n'+shareUrl);
+            alert('Enlace copiado al portapapeles:\n'+shareUrl);
           }catch(e){
-            alert('Podés compartir este enlace:\\n'+shareUrl);
+            alert('Podés compartir este enlace:\n'+shareUrl);
           }
         });
       }
 
       function doShare(){
         showQr();
+        if(!(navigator && navigator.share)){
+          return;
+        }
+        try{
+          navigator.share({
+            title:'Mapa de Escuelas La Raíz',
+            text:'Mapa interactivo de escuelas de La Plata, Berisso y Ensenada',
+            url:shareUrl
+          }).catch(function(){});
+        }catch(e){}
       }
       btnSplash.addEventListener('click', doShare);
     })();
