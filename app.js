@@ -1,3 +1,11 @@
+/* 
+ * TITULAR DE LA OBRA: Emanuel Alberto Álvarez 
+ * REGISTRO DNDA: Mapa de Escuelas: La Plata, Berisso y Ensenada 
+ * LICENCIA: Exclusiva para La Raíz Agrupación Docente. 
+ * Queda prohibida la reproducción total o parcial de este código y sus GeoJSON 
+ * por otras organizaciones bajo apercibimiento de acciones legales. 
+ */ 
+
 const map = L.map('map').setView([-34.921, -57.954], 11);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
